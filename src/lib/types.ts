@@ -38,6 +38,14 @@ export interface ShootDay {
   notes: string
 }
 
+export interface Note {
+  id: string
+  text: string
+  type: 'NOTE' | 'FEEDBACK' | 'IDEA_RAW'
+  conceptId?: string // optional link to a concept
+  createdAt: string
+}
+
 export const SERIES_NAMES = [
   'Jaanwar ki Jaan',
   'Paaltu ka Raaz',

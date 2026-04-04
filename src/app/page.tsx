@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Concept, CATEGORY_CONFIG, PET_CONFIG, STATUS_CONFIG, ContentStatus } from '@/lib/types'
-import { getConcepts, saveConcept, getStats, updateConceptStatus, getGoldIdeas } from '@/lib/store'
+import { Concept, Note, CATEGORY_CONFIG, PET_CONFIG, STATUS_CONFIG, ContentStatus } from '@/lib/types'
+import { getConcepts, saveConcept, getStats, updateConceptStatus, getGoldIdeas, getNotes, saveNote, deleteNote, generateId } from '@/lib/store'
 import { SEED_CONCEPTS, SEED_GOLD_IDEAS } from '@/lib/seed'
 import { saveGoldIdea } from '@/lib/store'
 
@@ -11,6 +11,9 @@ const STATUS_FLOW: ContentStatus[] = ['IDEA', 'APPROVED', 'SCHEDULED', 'SHOT', '
 
 export default function TodayPage() {
   const [concepts, setConcepts] = useState<Concept[]>([])
+  const [notes, setNotes] = useState<Note[]>([])
+  const [noteText, setNoteText] = useState('')
+  const [noteType, setNoteType] = useState<'NOTE' | 'FEEDBACK' | 'IDEA_RAW'>('NOTE')
   const [stats, setStats] = useState({ total: 0, byStatus: {} as Record<string, number>, byCategory: {} as Record<string, number>, todayCount: 0, thisWeekPosted: 0 })
   const [mounted, setMounted] = useState(false)
 
@@ -24,13 +27,27 @@ export default function TodayPage() {
       }
     }
     setConcepts(getConcepts())
+    setNotes(getNotes())
     setStats(getStats())
     setMounted(true)
   }, [])
 
   function refresh() {
     setConcepts(getConcepts())
+    setNotes(getNotes())
     setStats(getStats())
+  }
+
+  function addNote() {
+    if (!noteText.trim()) return
+    saveNote({ id: generateId(), text: noteText, type: noteType, createdAt: new Date().toISOString() })
+    setNoteText('')
+    refresh()
+  }
+
+  function removeNote(id: string) {
+    deleteNote(id)
+    refresh()
   }
 
   function advanceStatus(id: string) {
@@ -112,6 +129,55 @@ export default function TodayPage() {
         )}
       </div>
 
+      {/* Notes & Feedback */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3">Notes & Feedback</h2>
+        <div className="bg-[#1A1D27] rounded-xl p-4 border border-[#2A2D37] space-y-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Quick note, feedback, raw idea..."
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addNote()}
+              className="flex-1 bg-[#0F1117] border border-[#2A2D37] rounded-lg px-3 py-2 text-sm text-white placeholder-[#9CA3AF] focus:border-[#10B981] focus:outline-none"
+            />
+            <button onClick={addNote} className="px-3 py-2 rounded-lg bg-[#10B981] text-black text-sm font-medium flex-shrink-0">+</button>
+          </div>
+          <div className="flex gap-2">
+            {(['NOTE', 'FEEDBACK', 'IDEA_RAW'] as const).map(t => (
+              <button key={t} onClick={() => setNoteType(t)}
+                className={`text-[10px] px-2 py-1 rounded-lg border transition-colors ${
+                  noteType === t ? 'border-[#10B981] bg-[#10B981]/10 text-[#10B981]' : 'border-[#2A2D37] text-[#9CA3AF]'
+                }`}>
+                {t === 'NOTE' ? 'Note' : t === 'FEEDBACK' ? 'Feedback' : 'Raw Idea'}
+              </button>
+            ))}
+          </div>
+        </div>
+        {notes.length > 0 && (
+          <div className="mt-2 space-y-1.5">
+            {notes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(n => (
+              <div key={n.id} className="bg-[#1A1D27] rounded-lg px-4 py-3 border border-[#2A2D37] flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                      n.type === 'FEEDBACK' ? 'bg-[#F59E0B]/15 text-[#F59E0B]' :
+                      n.type === 'IDEA_RAW' ? 'bg-[#8B5CF6]/15 text-[#8B5CF6]' :
+                      'bg-[#3B82F6]/15 text-[#3B82F6]'
+                    }`}>{n.type === 'IDEA_RAW' ? 'Raw Idea' : n.type === 'FEEDBACK' ? 'Feedback' : 'Note'}</span>
+                    <span className="text-[10px] text-[#9CA3AF]">{new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                  <p className="text-xs text-white">{n.text}</p>
+                </div>
+                <button onClick={() => removeNote(n.id)} className="text-[#9CA3AF] hover:text-[#EF4444] text-xs flex-shrink-0">x</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Link href="/concepts" className="bg-[#1A1D27] border border-[#2A2D37] rounded-xl p-4 text-center hover:border-[#10B981] transition-colors">
           <span className="text-xl">+</span>

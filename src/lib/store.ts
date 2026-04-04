@@ -1,11 +1,12 @@
 'use client'
 
-import { Concept, GoldIdea, ShootDay, ContentStatus } from './types'
+import { Concept, GoldIdea, ShootDay, ContentStatus, Note } from './types'
 
 const STORAGE_KEYS = {
   concepts: 'jej-concepts',
   goldIdeas: 'jej-gold-ideas',
   shootDays: 'jej-shoot-days',
+  notes: 'jej-notes',
 } as const
 
 function getItem<T>(key: string, fallback: T): T {
@@ -102,6 +103,27 @@ export function saveShootDay(day: ShootDay): void {
     days.push(day)
   }
   setItem(STORAGE_KEYS.shootDays, days)
+}
+
+// Notes
+export function getNotes(): Note[] {
+  return getItem<Note[]>(STORAGE_KEYS.notes, [])
+}
+
+export function saveNote(note: Note): void {
+  const notes = getNotes()
+  const idx = notes.findIndex(n => n.id === note.id)
+  if (idx >= 0) {
+    notes[idx] = note
+  } else {
+    notes.push(note)
+  }
+  setItem(STORAGE_KEYS.notes, notes)
+}
+
+export function deleteNote(id: string): void {
+  const notes = getNotes().filter(n => n.id !== id)
+  setItem(STORAGE_KEYS.notes, notes)
 }
 
 // Stats
