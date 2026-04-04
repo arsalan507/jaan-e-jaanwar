@@ -1,0 +1,58 @@
+@import "tailwindcss" source("../**/*.{ts,tsx}");
+
+@theme inline {
+  --color-background: #0F1117;
+  --color-surface: #1A1D27;
+  --color-border: #2A2D37;
+  --color-accent: #10B981;
+  --color-accent-dim: #065F46;
+  --color-text: #F9FAFB;
+  --color-text-muted: #9CA3AF;
+  --color-gold: #EAB308;
+  --color-edu: #3B82F6;
+  --color-emo: #10B981;
+  --color-conv: #EF4444;
+  --font-sans: var(--font-inter);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbars on mobile for PWA feel */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+/* Smooth transitions */
+button, a, [role="button"] {
+  transition: all 0.15s ease;
+}
+
+button:active, [role="button"]:active {
+  transform: scale(0.97);
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(26, 29, 39, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Category badges */
+.badge-gold { background: rgba(234, 179, 8, 0.15); color: #EAB308; }
+.badge-edu { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.badge-emo { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.badge-conv { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
